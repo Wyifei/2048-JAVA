@@ -12,6 +12,12 @@ public class Controls implements KeyListener {
 		
 		int keyCode = e.getKeyCode();
 
+		boolean move = !Game.BOARD.isOver() && (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_DOWN
+				|| keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_RIGHT);
+		if (move) {
+			Game.BOARD.saveState();
+		}
+
 		switch (keyCode) {
 			case KeyEvent.VK_UP:
 				Game.BOARD.moveUp();
@@ -25,6 +31,12 @@ public class Controls implements KeyListener {
 			case KeyEvent.VK_RIGHT:
 				Game.BOARD.moveRight();
 				break;
+			case KeyEvent.VK_U:
+				Game.BOARD.undo();
+				break;
+			case KeyEvent.VK_R:
+				Game.BOARD.restart();
+				break;
 			case KeyEvent.VK_ESCAPE:
 				Game.WINDOW.dispose();
 				break;
@@ -32,7 +44,10 @@ public class Controls implements KeyListener {
 				break;
 		}
 		
-		Game.BOARD.isGameOver();
+		if (move) {
+			Game.BOARD.discardStateIfUnchanged();
+			Game.BOARD.isGameOver();
+		}
 		//Game.BOARD.show();
 		Game.WINDOW.repaint();
 		

@@ -18,7 +18,7 @@ public class Tile {
 	}
 	
 	public Tile() {
-		new Tile(0);
+		this(0);
 	}
 
 	public int getValue() {

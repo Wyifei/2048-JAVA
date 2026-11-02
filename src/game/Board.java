@@ -1,6 +1,8 @@
 package game;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
 /**
@@ -18,6 +20,9 @@ public class Board {
 	private String wonOrLost;				// won or lost
 	private boolean genNewTile = false;		// generate new tile when any tile moved
 	private List<List<Tile>> tiles;			// board
+	private int bestScore;					// highest score reached in this session
+	private final Deque<int[]> history = new ArrayDeque<>();	// snapshots for undo (newest first)
+	private static final int MAX_HISTORY = 50;
 
 	/**
 	 * {@link Constructor}
@@ -78,6 +83,81 @@ public class Board {
 	
 	public int getScore() {
 		return score;
+	}
+
+	public int getBestScore() {
+		return Math.max(bestScore, score);
+	}
+
+	public boolean isOver() {
+		return wonOrLost != null;
+	}
+
+	/**
+	 * starts a new game on the same board; best score is kept
+	 */
+	public void restart() {
+		bestScore = getBestScore();
+		score = 0;
+		gameover = false;
+		wonOrLost = null;
+		genNewTile = false;
+		emptyTiles = size * size;
+		history.clear();
+		tiles.clear();
+		initialize();
+		genInitTiles();
+	}
+
+	/**
+	 * remembers current state so the next move can be undone
+	 */
+	public void saveState() {
+		int[] snap = new int[size * size + 2];
+		for (int row = 0; row < size; row++) {
+			for (int col = 0; col < size; col++) {
+				snap[row * size + col] = getTileAt(row, col).getValue();
+			}
+		}
+		snap[size * size] = score;
+		snap[size * size + 1] = emptyTiles;
+		history.push(snap);
+		if (history.size() > MAX_HISTORY) {
+			history.removeLast();
+		}
+	}
+
+	/**
+	 * drops the last saved state when the move did not change the board
+	 */
+	public void discardStateIfUnchanged() {
+		if (!genNewTile && !history.isEmpty()) {
+			history.pop();
+		}
+	}
+
+	/**
+	 * restores the state saved before the last effective move
+	 * @return false if there is nothing to undo
+	 */
+	public boolean undo() {
+		if (history.isEmpty()) {
+			return false;
+		}
+		bestScore = getBestScore();
+		int[] snap = history.pop();
+		for (int row = 0; row < size; row++) {
+			for (int col = 0; col < size; col++) {
+				int value = snap[row * size + col];
+				setTileAt(row, col, value == 0 ? new Tile() : new Tile(value, row, col));
+			}
+		}
+		score = snap[size * size];
+		emptyTiles = snap[size * size + 1];
+		gameover = false;
+		wonOrLost = null;
+		genNewTile = false;
+		return true;
 	}
 
 	/**
@@ -289,8 +369,8 @@ public class Board {
 			int col;
 			int value = Math.random() < 0.9 ? 2 : 4;
 			do {
-				row = (int) (Math.random () * 4);
-				col = (int) (Math.random () * 4);
+				row = (int) (Math.random() * size);
+				col = (int) (Math.random() * size);
 			} while (getTileAt(row, col).getValue() != 0);
 			setTileAt(row, col, new Tile(value, row, col));
 			emptyTiles--;

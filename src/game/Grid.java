@@ -50,12 +50,23 @@ public class Grid extends JPanel {
 		int height = 40;
 		int xOffset = Game.WINDOW.getWidth() - WIN_MARGIN - width;
 		int yOffset = 20;
+		drawScoreBox(g, "BEST", Game.BOARD.getBestScore(), xOffset - width - 10, yOffset, width, height);
 		g.fillRoundRect(xOffset, yOffset, width, height, TILE_RADIUS, TILE_RADIUS);
 		g.setFont( new Font(FONT, Font.BOLD, 10) );
 		g.setColor( new Color(0XFFFFFF) );
 		g.drawString("SCORE", xOffset + 22, yOffset + 15);
 		g.setFont( new Font(FONT, Font.BOLD, 12) );
 		g.drawString(String.valueOf(Game.BOARD.getScore()), xOffset + 35, yOffset + 30);
+	}
+
+	private static void drawScoreBox(Graphics2D g, String label, int value, int x, int y, int width, int height) {
+		g.fillRoundRect(x, y, width, height, TILE_RADIUS, TILE_RADIUS);
+		g.setColor(new Color(0XFFFFFF));
+		g.setFont(new Font(FONT, Font.BOLD, 10));
+		g.drawString(label, x + 22, y + 15);
+		g.setFont(new Font(FONT, Font.BOLD, 12));
+		g.drawString(String.valueOf(value), x + 22, y + 30);
+		g.setColor(ColorScheme.BRIGHT);
 	}
 
 	private static void drawBackground(Graphics g) {
@@ -68,8 +79,9 @@ public class Grid extends JPanel {
 		g.setColor(ColorScheme.GRIDBG);
 		g.fillRoundRect(0, 0, Game.WINDOW.getWidth() - (WIN_MARGIN * 2), 320 + TILE_MARGIN, TILE_RADIUS, TILE_RADIUS);
 
-		for (int row = 0; row < 4; row++) {
-			for (int col = 0; col < 4; col++) {
+		int n = Game.BOARD.getSize();
+		for (int row = 0; row < n; row++) {
+			for (int col = 0; col < n; col++) {
 				drawTile(g, Game.BOARD.getTileAt(row, col), col, row);
 			}
 		}
@@ -107,7 +119,8 @@ public class Grid extends JPanel {
 			g.setColor(ColorScheme.BRIGHT);
 			g.setFont(new Font(FONT, Font.BOLD, 30));
 			g.drawString("You " + Game.BOARD.getWonOrLost() + "!", 68, 150);
-			Game.CONTROLS.unbind();
+			g.setFont(new Font(FONT, Font.PLAIN, 12));
+			g.drawString("Press R to restart, U to undo", 68, 175);
 		}
 
 
