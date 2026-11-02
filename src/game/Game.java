@@ -7,4 +7,8 @@ public class Game {
 	public static final Controls CONTROLS = new Controls();
 	public static final Board BOARD = new Board(4);
 
+	static {
+		CONTROLS.bind();
+	}
+
 }

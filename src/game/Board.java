@@ -2,6 +2,7 @@ package game;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Board
@@ -18,13 +19,23 @@ public class Board {
 	private String wonOrLost;				// won or lost
 	private boolean genNewTile = false;		// generate new tile when any tile moved
 	private List<List<Tile>> tiles;			// board
+	private final Random random;			// source of randomness (injectable for tests)
 
 	/**
 	 * {@link Constructor}
 	 * 
 	 */
 	public Board(int size) {
+		this(size, new Random());
+	}
+
+	/**
+	 * {@link Constructor} with injectable random source, so that the board is deterministic and testable
+	 * without any GUI (key bindings are wired up in {@link Game}).
+	 */
+	public Board(int size, Random random) {
 		super();
+		this.random = random;
 		this.size = size;
 		this.emptyTiles = this.size * this.size;
 		this.tiles = new ArrayList<>();
@@ -42,7 +53,6 @@ public class Board {
 	}
 	
 	private void start() {
-		Game.CONTROLS.bind();
 		initialize();
 		genInitTiles();
 		//show();
@@ -69,6 +79,7 @@ public class Board {
 	}
 
 	public void setTileAt(int row, int col, Tile t) {
+		t.setPosition(row, col); // tile remembers where it sits, so hasMoved() works without a GUI
 		tiles.get(row).set(col, t);
 	}
 
@@ -76,6 +87,18 @@ public class Board {
 		tiles.get(row).remove(col);
 	}
 	
+	/**
+	 * recounts empty tiles after the board content was replaced from outside
+	 */
+	void syncEmptyTiles() {
+		emptyTiles = 0;
+		for (List<Tile> row : tiles) {
+			for (Tile t : row) {
+				if (t.isEmpty()) emptyTiles++;
+			}
+		}
+	}
+
 	public int getScore() {
 		return score;
 	}
@@ -287,10 +310,10 @@ public class Board {
 		if (genNewTile) {
 			int row;
 			int col;
-			int value = Math.random() < 0.9 ? 2 : 4;
+			int value = random.nextDouble() < 0.9 ? 2 : 4;
 			do {
-				row = (int) (Math.random () * 4);
-				col = (int) (Math.random () * 4);
+				row = random.nextInt(size);
+				col = random.nextInt(size);
 			} while (getTileAt(row, col).getValue() != 0);
 			setTileAt(row, col, new Tile(value, row, col));
 			emptyTiles--;

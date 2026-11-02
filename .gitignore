@@ -37,3 +37,6 @@ manifest.mf
 build.xml
 
 # End of https://www.gitignore.io/api/java,netbeans
+
+# Maven
+target/
